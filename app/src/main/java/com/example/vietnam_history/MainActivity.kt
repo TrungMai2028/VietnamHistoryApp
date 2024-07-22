@@ -4,9 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -36,8 +40,16 @@ import com.example.vietnam_history.data.Datasource
 import com.example.vietnam_history.model.Event
 import com.example.vietnam_history.ui.theme.Vietnam_historyTheme
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.dimensionResource
 
@@ -59,53 +71,65 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun HistoryApp() {
-    val layoutDirection = LocalLayoutDirection.current
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .padding(
-                start = WindowInsets.safeDrawing.asPaddingValues()
-                    .calculateStartPadding(layoutDirection),
-                end = WindowInsets.safeDrawing.asPaddingValues()
-                    .calculateEndPadding(layoutDirection),
-            ),
-    ) {
-        EventList(
-            eventList = Datasource().loadEvents(),
-        )
-    }
-}
+    Scaffold(
+        topBar = {
+            TopAppBar()
+        }
+    ) { paddingValues ->
+        LazyColumn(contentPadding = paddingValues) {
+            items(Datasource().loadEvents()) { event ->
 
-@Composable
-fun EventList(eventList: List<Event>, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier) {
-        items(eventList) { event ->
-            EventCard(
-                event = event,
-                modifier = Modifier.padding(8.dp)
-            )
+                var isExpanded by remember { mutableStateOf(false) }
+
+                EventCard(
+                    event = event,
+                    expanded = isExpanded,
+                    onClick = { isExpanded = !isExpanded },
+                    modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+                )
+            }
         }
     }
 }
 
+
 @Composable
-fun EventCard(event: Event, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
+fun EventCard(
+    event: Event,
+    modifier: Modifier = Modifier,
+    expanded: Boolean,
+    onClick: () -> Unit
+) {
+    Card(modifier = modifier.clickable{ onClick() }) {
+
         Column {
-            Image(
-                painter = painterResource(event.imageResourceId),
-                contentDescription = stringResource(event.stringResourceId),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(194.dp),
-                contentScale = ContentScale.Crop
-            )
-            Text(
-                text = LocalContext.current.getString(event.stringResourceId),
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.headlineSmall
-            )
+                Image(
+                    painter = painterResource(event.imageResourceId),
+                    contentDescription = stringResource(event.stringResourceId),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(194.dp),
+                    contentScale = ContentScale.Crop
+                )
+                Text(
+                    text = LocalContext.current.getString(event.stringResourceId),
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            if (expanded) {
+                EventInfo(
+                    event.descriptionResourceId,
+                    modifier = Modifier.padding(
+                        start = dimensionResource(R.dimen.padding_medium),
+                        top = dimensionResource(R.dimen.padding_small),
+                        end = dimensionResource(R.dimen.padding_medium),
+                        bottom = dimensionResource(R.dimen.padding_medium)
+                    )
+                )
+            }
         }
     }
 }
@@ -126,6 +150,22 @@ fun TopAppBar(modifier: Modifier = Modifier) {
         },
         modifier = modifier
     )
+}
+
+
+@Composable
+fun EventInfo(
+    @StringRes Info: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+    ){
+        Text(
+            text = stringResource(Info),
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
 }
 
 @Preview(showBackground = true)
