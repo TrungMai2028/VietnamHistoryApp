@@ -5,6 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -48,8 +51,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             Vietnam_historyTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     HistoryApp()
                 }
@@ -91,7 +93,14 @@ fun EventCard(
 ) {
     Card(modifier = modifier.clickable{ onClick() }) {
 
-        Column {
+        Column (
+            modifier = Modifier.animateContentSize(
+            animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            )
+        ){
             Image(
                 painter = painterResource(event.imageResourceId),
                 contentDescription = stringResource(event.stringResourceId),
